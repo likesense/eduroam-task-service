@@ -1,0 +1,8 @@
+.env
+*.db
+tmp/
+temp/
+bin/
+debug/
+*.tar
+*.tar.gz

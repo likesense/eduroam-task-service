@@ -1,0 +1,184 @@
+definitions:
+  models.Hint:
+    properties:
+      hint_text:
+        type: string
+      id:
+        type: integer
+      is_used:
+        type: boolean
+      task_id:
+        type: integer
+      theme:
+        type: string
+    type: object
+  models.Task:
+    properties:
+      attempts:
+        description: попытки
+        type: integer
+      complexity:
+        description: сложность
+        type: integer
+      id:
+        type: integer
+      is_finished:
+        type: boolean
+      task_text:
+        type: string
+      theme:
+        description: тема задачи
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /api/task-service/hint/{ID}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a hint by its ID
+      parameters:
+      - description: Hint ID
+        in: query
+        name: ID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Hint details
+          schema:
+            $ref: '#/definitions/models.Hint'
+        "400":
+          description: Invalid hint ID
+        "500":
+          description: Internal server error
+      summary: Get hint by ID
+      tags:
+      - hints
+  /api/task-service/hint/task/{task_id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all hints associated with a specific task
+      parameters:
+      - description: Task ID
+        in: path
+        name: task_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of hints
+          schema:
+            items:
+              $ref: '#/definitions/models.Hint'
+            type: array
+        "400":
+          description: Invalid task ID
+        "500":
+          description: Internal server error
+      summary: Get all hints by task ID
+      tags:
+      - hints
+  /api/task-service/task:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a list of all tasks from the system
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of tasks
+          schema:
+            items:
+              $ref: '#/definitions/models.Task'
+            type: array
+        "500":
+          description: Internal server error
+      summary: Get all tasks
+      tags:
+      - tasks
+  /api/task-service/task/{ID}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a specific task using its ID
+      parameters:
+      - description: Task ID
+        example: "1"
+        in: path
+        name: ID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Task object
+          schema:
+            $ref: '#/definitions/models.Task'
+        "400":
+          description: Invalid task ID format
+        "500":
+          description: Internal server error
+      summary: Get task by ID
+      tags:
+      - tasks
+  /api/task-service/task/filter:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a list of tasks based on the applied filters
+      parameters:
+      - description: Task theme
+        in: query
+        name: theme
+        type: string
+      - description: Is task finished
+        in: query
+        name: isFinished
+        type: boolean
+      - description: Minimum complexity
+        in: query
+        name: minComplexity
+        type: integer
+      - description: Maximum complexity
+        in: query
+        name: maxComplexity
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of filtered tasks
+          schema:
+            items:
+              $ref: '#/definitions/models.Task'
+            type: array
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      summary: Get tasks by filters
+      tags:
+      - tasks
+  /api/task-service/task/themes:
+    get:
+      description: Retrieves a list of themes for tasks filters
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of themes
+        "500":
+          description: Internal Server Error
+      summary: Get themes for filters
+      tags:
+      - tasks
+swagger: "2.0"

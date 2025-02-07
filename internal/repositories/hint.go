@@ -34,3 +34,12 @@ func (hr *HintRepository) GetAllByTaskID(taskID uint64) (hints []*models.Hint, e
 	}
 	return hints, nil
 }
+
+func (hr *HintRepository) Create(hint *models.Hint) (newHint *models.Hint, err error) {
+	newHint = new(models.Hint)
+	err = hr.db.Get(newHint, queries.CreateNewHint, hint.TaskID, hint.Theme, hint.HintText)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create a hint: %v", err)
+	}
+	return newHint, nil
+}

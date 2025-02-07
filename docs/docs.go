@@ -15,7 +15,47 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/task-service/hint/task/{task_id}": {
+        "/api/task-service/hint": {
+            "post": {
+                "description": "Creates a new hint for a specific task",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "hints"
+                ],
+                "summary": "Create new hint",
+                "parameters": [
+                    {
+                        "description": "Hint object that needs to be created",
+                        "name": "hint",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Hint"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Hint successfully created",
+                        "schema": {
+                            "$ref": "#/definitions/models.Hint"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/api/task-service/hint/byTask/{taskID}": {
             "get": {
                 "description": "Retrieves all hints associated with a specific task",
                 "consumes": [
@@ -88,6 +128,9 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid hint ID"
                     },
+                    "404": {
+                        "description": "Status Not Found"
+                    },
                     "500": {
                         "description": "Internal server error"
                     }
@@ -95,8 +138,8 @@ const docTemplate = `{
             }
         },
         "/api/task-service/task": {
-            "get": {
-                "description": "Retrieves a list of all tasks from the system",
+            "post": {
+                "description": "Creates a new task in the system",
                 "consumes": [
                     "application/json"
                 ],
@@ -106,24 +149,35 @@ const docTemplate = `{
                 "tags": [
                     "tasks"
                 ],
-                "summary": "Get all tasks",
-                "responses": {
-                    "200": {
-                        "description": "List of tasks",
+                "summary": "Create new task",
+                "parameters": [
+                    {
+                        "description": "Task object that needs to be created",
+                        "name": "task",
+                        "in": "body",
+                        "required": true,
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/models.Task"
-                            }
+                            "$ref": "#/definitions/models.Task"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Task successfully created",
+                        "schema": {
+                            "$ref": "#/definitions/models.Task"
                         }
                     },
+                    "400": {
+                        "description": "Bad Request"
+                    },
                     "500": {
-                        "description": "Internal server error"
+                        "description": "Internal Server Error"
                     }
                 }
             }
         },
-        "/api/task-service/task/filter": {
+        "/api/task-service/task/": {
             "get": {
                 "description": "Retrieves a list of tasks based on the applied filters",
                 "consumes": [
@@ -234,8 +288,60 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid task ID format"
                     },
+                    "404": {
+                        "description": "Status Not Found"
+                    },
                     "500": {
                         "description": "Internal server error"
+                    }
+                }
+            },
+            "patch": {
+                "description": "Updates an existing task in the system",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tasks"
+                ],
+                "summary": "Update task by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "1",
+                        "description": "Task ID",
+                        "name": "ID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Task object with fields to update",
+                        "name": "task",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Task"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Task successfully updated",
+                        "schema": {
+                            "$ref": "#/definitions/models.Task"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "404": {
+                        "description": "Task not found"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
                     }
                 }
             }

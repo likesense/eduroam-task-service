@@ -37,7 +37,7 @@ func New() (*App, error) {
 		gin.Recovery(),
 	)
 
-	a.gin.GET("/task/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	a.gin.GET("/task-service/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	postgresDbConnection := postgres.NewPostgresDbConnection()
 	repos := repository.NewRepositories(postgresDbConnection)

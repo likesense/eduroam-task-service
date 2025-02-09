@@ -86,6 +86,39 @@ paths:
       summary: Get hint by ID
       tags:
       - hints
+    patch:
+      consumes:
+      - application/json
+      description: Updates an existing hint in the system
+      parameters:
+      - description: Hint ID
+        example: "1"
+        in: path
+        name: ID
+        required: true
+        type: string
+      - description: Hint object with fields to update
+        in: body
+        name: hint
+        required: true
+        schema:
+          $ref: '#/definitions/models.Hint'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Hint successfully updated
+          schema:
+            $ref: '#/definitions/models.Hint'
+        "400":
+          description: Bad Request
+        "404":
+          description: Hint not found
+        "500":
+          description: Internal Server Error
+      summary: Update hint by ID
+      tags:
+      - hints
   /api/task-service/hint/byTask/{taskID}:
     get:
       consumes:

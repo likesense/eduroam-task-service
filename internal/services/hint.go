@@ -49,3 +49,22 @@ func (hs *HintService) CreateNewHint(hint models.Hint) (newHint *models.Hint, er
 	}
 	return newHint, nil
 }
+
+func (hs *HintService) UpdateHintByID(hintID uint64, newHint models.Hint) (patchedHint *models.Hint, err error) {
+	existingHint, err := hs.repo.GetByID(hintID)
+	if err != nil {
+		return nil, fmt.Errorf("error getting hint with ID: %v", err)
+	}
+	if newHint.HintText != "" {
+		existingHint.HintText = newHint.HintText
+	}
+	if newHint.Theme != "" {
+		existingHint.Theme = newHint.Theme
+	}
+	existingHint.IsUsed = newHint.IsUsed
+	patchedHint, err = hs.repo.Update(existingHint)
+	if err != nil {
+		return nil, fmt.Errorf("error patching task: %v", err)
+	}
+	return patchedHint, nil
+}

@@ -17,6 +17,7 @@ type Hint interface {
 	GetByID(ID uint64) (*models.Hint, error)
 	GetAllByTaskID(taskID uint64) (hints []*models.Hint, err error)
 	Create(hint *models.Hint) (newHint *models.Hint, err error)
+	Update(hint *models.Hint) (patchedHint *models.Hint, err error)
 }
 
 type Repositories struct {

@@ -10,10 +10,14 @@ type Task interface {
 	GetAll() (tasks []*models.Task, err error)
 	GetAllThemes() ([]string, error)
 	GetByFilterList(filters ...func(any) any) (tasks []*models.Task, err error)
+	Create(task *models.Task) (newTask *models.Task, err error)
+	Update(task *models.Task) (patchTask *models.Task, err error)
 }
 type Hint interface {
 	GetByID(ID uint64) (*models.Hint, error)
 	GetAllByTaskID(taskID uint64) (hints []*models.Hint, err error)
+	Create(hint *models.Hint) (newHint *models.Hint, err error)
+	Update(hint *models.Hint) (patchedHint *models.Hint, err error)
 }
 
 type Repositories struct {

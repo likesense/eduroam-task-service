@@ -24,10 +24,47 @@ func (hs *HintService) GetAllHints(taskID uint64) (hints []*models.Hint, err err
 	}
 	return hints, nil
 }
+
 func (hs *HintService) GetHintByID(hintID uint64) (*models.Hint, error) {
 	hint, err := hs.repo.GetByID(hintID)
 	if err != nil {
 		return nil, fmt.Errorf("error getting hint by ID: %v", err)
 	}
 	return hint, nil
+}
+
+func (hs *HintService) CreateNewHint(hint models.Hint) (newHint *models.Hint, err error) {
+	if hint.TaskID == 0 {
+		return nil, fmt.Errorf("field 'taskID' is required")
+	}
+	if hint.Theme == "" {
+		return nil, fmt.Errorf("field 'theme' is required")
+	}
+	if hint.HintText == "" {
+		return nil, fmt.Errorf("field 'hint_text' is required")
+	}
+	newHint, err = hs.repo.Create(&hint)
+	if err != nil {
+		return nil, fmt.Errorf("error creating hint: %v", err)
+	}
+	return newHint, nil
+}
+
+func (hs *HintService) UpdateHintByID(hintID uint64, newHint models.Hint) (patchedHint *models.Hint, err error) {
+	existingHint, err := hs.repo.GetByID(hintID)
+	if err != nil {
+		return nil, fmt.Errorf("error getting hint with ID: %v", err)
+	}
+	if newHint.HintText != "" {
+		existingHint.HintText = newHint.HintText
+	}
+	if newHint.Theme != "" {
+		existingHint.Theme = newHint.Theme
+	}
+	existingHint.IsUsed = newHint.IsUsed
+	patchedHint, err = hs.repo.Update(existingHint)
+	if err != nil {
+		return nil, fmt.Errorf("error patching task: %v", err)
+	}
+	return patchedHint, nil
 }

@@ -47,6 +47,24 @@ func (tr *TaskRepository) GetAllThemes() ([]string, error) {
 	return themes, nil
 }
 
+func (tr *TaskRepository) Create(task *models.Task) (newTask *models.Task, err error) {
+	newTask = new(models.Task)
+	err = tr.db.Get(newTask, queries.CreateNewTask, task.Theme, task.Complexity, task.TaskText)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create new task: %v", err)
+	}
+	return newTask, nil
+}
+
+func (tr *TaskRepository) Update(task *models.Task) (patchTask *models.Task, err error) {
+	patchTask = new(models.Task)
+	err = tr.db.Get(patchTask, queries.UpdateTaskByID, task.Theme, task.Complexity, task.TaskText, task.Attempts, task.IsFinished, task.ID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update task: %v", err)
+	}
+	return patchTask, nil
+}
+
 func (tr *TaskRepository) GetByFilterList(filters ...func(any) any) (tasks []*models.Task, err error) {
 	const taskSelectQuery = `t.id, t.theme, t.task_text,
 	 t.attempts, t.is_finished, t.complexity

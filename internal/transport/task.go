@@ -10,6 +10,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/likesense/task-service/internal/database/filters"
+	"github.com/likesense/task-service/internal/models"
 	service "github.com/likesense/task-service/internal/services"
 )
 
@@ -26,51 +27,83 @@ func NewTaskHandler(service *service.Services) *TaskHandler {
 func (th *TaskHandler) RegisterTaskRoutes(grp *gin.RouterGroup) {
 	task := grp.Group("/task")
 	{
-		task.GET("", th.handleGetAllTasks)
-		task.GET("filter", th.handleGetTaskByFilterList)
+		task.POST("", th.handleCreateNewTask)
+		task.GET("", th.handleGetTaskByFilterList)
+		task.PATCH("/:ID", th.handleUpdateTaskByID)
 		task.GET("/:ID", th.handleGetTaskByID)
 		task.GET("/themes", th.handleGetAllThemes)
 	}
 }
 
-// handleGetAllTasks returns all tasks from the system
+// handleCreateNewTask creates a new task
 //
-// @Summary Get all tasks
-// @Description Retrieves a list of all tasks from the system
+// @Summary Create new task
+// @Description Creates a new task in the system
 // @Tags tasks
 // @Accept json
 // @Produce json
-// @Success 200 {array} models.Task "List of tasks"
-// @Failure 500 "Internal server error"
-// @Router /api/task-service/task [get]
-func (th *TaskHandler) handleGetAllTasks(ctx *gin.Context) {
-	task, err := th.service.GetAllTasks()
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "can not get all tasks"})
+// @Param task body models.Task true "Task object that needs to be created"
+// @Success 201 {object} models.Task "Task successfully created"
+// @Failure 400 "Bad Request"
+// @Failure 500 "Internal Server Error"
+// @Router /api/task-service/task [post]
+func (th *TaskHandler) handleCreateNewTask(ctx *gin.Context) {
+	var task models.Task
+
+	if err := ctx.ShouldBindJSON(&task); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid input format"})
 		return
 	}
-	ctx.JSON(http.StatusOK, task)
+
+	newTask, err := th.service.CreateNewTask(task)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, newTask)
 }
 
-// handleGetAllThemes returns all themes for filters
-// @Summary Get themes for filters
-// @Description Retrieves a list of themes for tasks filters
+// handleUpdateTaskByID updates an existing task
+//
+// @Summary Update task by ID
+// @Description Updates an existing task in the system
 // @Tags tasks
+// @Accept json
 // @Produce json
-// @Success 200 "List of themes"
+// @Param ID path string true "Task ID" example(1)
+// @Param task body models.Task true "Task object with fields to update"
+// @Success 200 {object} models.Task "Task successfully updated"
+// @Failure 400 "Bad Request"
+// @Failure 404 "Task not found"
 // @Failure 500 "Internal Server Error"
-// @Router /api/task-service/task/themes [get]
-func (th *TaskHandler) handleGetAllThemes(ctx *gin.Context) {
-	themes, err := th.service.GetAllThemes()
+// @Router /api/task-service/task/{ID} [patch]
+func (th *TaskHandler) handleUpdateTaskByID(ctx *gin.Context) {
+	taskIDStr := ctx.Param("ID")
+	if strings.TrimSpace(taskIDStr) == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "ID is required"})
+	}
+	taskID, err := strconv.ParseUint(taskIDStr, 10, 64)
 	if err != nil {
-		log.Printf("Error getting themes for tasks: %v", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "can not get all themes"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid task ID format"})
 		return
 	}
-	ctx.JSON(http.StatusOK, themes)
+	var task models.Task
+	if err = ctx.ShouldBindJSON(&task); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid input format"})
+		return
+	}
+	patchedTask, err := th.service.UpdateTaskByID(taskID, task)
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, patchedTask)
 }
 
 // handleGetByFilterList returns filtered tasks
+//
 // @Summary Get tasks by filters
 // @Description Retrieves a list of tasks based on the applied filters
 // @Tags tasks
@@ -83,16 +116,14 @@ func (th *TaskHandler) handleGetAllThemes(ctx *gin.Context) {
 // @Success 200 {array} models.Task "List of filtered tasks"
 // @Failure 400 "Bad Request"
 // @Failure 500 "Internal Server Error"
-// @Router /api/task-service/task/filter [get]
+// @Router /api/task-service/task/ [get]
 func (th *TaskHandler) handleGetTaskByFilterList(ctx *gin.Context) {
 	opts := make([]func(any) any, 0)
-
 	httpCode, err := th.applyFilters(ctx.Request.URL.Query(), &opts)
 	if err != nil {
 		ctx.JSON(httpCode, gin.H{"error": err.Error()})
 		return
 	}
-
 	tasks, err := th.service.GetTasksByFilterList(opts...)
 	if err != nil {
 		log.Printf("Error getting filtered tasks: %v", err)
@@ -113,6 +144,7 @@ func (th *TaskHandler) handleGetTaskByFilterList(ctx *gin.Context) {
 // @Param ID path string true "Task ID" example(1)
 // @Success 200 {object} models.Task "Task object"
 // @Failure 400 "Invalid task ID format"
+// @Failure 404 "Status Not Found"
 // @Failure 500 "Internal server error"
 // @Router /api/task-service/task/{ID} [get]
 func (th *TaskHandler) handleGetTaskByID(ctx *gin.Context) {
@@ -131,7 +163,31 @@ func (th *TaskHandler) handleGetTaskByID(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "can not get task by ID"})
 		return
 	}
+	if task == nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": fmt.Sprintf("task with ID: %v, not found", taskID)})
+	}
+
 	ctx.JSON(http.StatusOK, task)
+}
+
+// handleGetAllThemes returns all themes for filters
+//
+// @Summary Get themes for filters
+// @Description Retrieves a list of themes for tasks filters
+// @Tags tasks
+// @Produce json
+// @Success 200 "List of themes"
+// @Failure 500 "Internal Server Error"
+// @Router /api/task-service/task/themes [get]
+func (th *TaskHandler) handleGetAllThemes(ctx *gin.Context) {
+	themes, err := th.service.GetAllThemes()
+	if err != nil {
+		log.Printf("Error getting themes for tasks: %v", err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "can not get all themes"})
+		return
+	}
+	
+	ctx.JSON(http.StatusOK, themes)
 }
 
 func (th *TaskHandler) applyFilters(parameters url.Values, opts *[]func(any) any) (int, error) {

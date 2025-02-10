@@ -33,6 +33,32 @@ definitions:
 info:
   contact: {}
 paths:
+  /api/task-service/hint:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new hint for a specific task
+      parameters:
+      - description: Hint object that needs to be created
+        in: body
+        name: hint
+        required: true
+        schema:
+          $ref: '#/definitions/models.Hint'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Hint successfully created
+          schema:
+            $ref: '#/definitions/models.Hint'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal server error
+      summary: Create new hint
+      tags:
+      - hints
   /api/task-service/hint/{ID}:
     get:
       consumes:
@@ -53,12 +79,47 @@ paths:
             $ref: '#/definitions/models.Hint'
         "400":
           description: Invalid hint ID
+        "404":
+          description: Status Not Found
         "500":
           description: Internal server error
       summary: Get hint by ID
       tags:
       - hints
-  /api/task-service/hint/task/{task_id}:
+    patch:
+      consumes:
+      - application/json
+      description: Updates an existing hint in the system
+      parameters:
+      - description: Hint ID
+        example: "1"
+        in: path
+        name: ID
+        required: true
+        type: string
+      - description: Hint object with fields to update
+        in: body
+        name: hint
+        required: true
+        schema:
+          $ref: '#/definitions/models.Hint'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Hint successfully updated
+          schema:
+            $ref: '#/definitions/models.Hint'
+        "400":
+          description: Bad Request
+        "404":
+          description: Hint not found
+        "500":
+          description: Internal Server Error
+      summary: Update hint by ID
+      tags:
+      - hints
+  /api/task-service/hint/byTask/{taskID}:
     get:
       consumes:
       - application/json
@@ -86,51 +147,32 @@ paths:
       tags:
       - hints
   /api/task-service/task:
-    get:
+    post:
       consumes:
       - application/json
-      description: Retrieves a list of all tasks from the system
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: List of tasks
-          schema:
-            items:
-              $ref: '#/definitions/models.Task'
-            type: array
-        "500":
-          description: Internal server error
-      summary: Get all tasks
-      tags:
-      - tasks
-  /api/task-service/task/{ID}:
-    get:
-      consumes:
-      - application/json
-      description: Retrieves a specific task using its ID
+      description: Creates a new task in the system
       parameters:
-      - description: Task ID
-        example: "1"
-        in: path
-        name: ID
+      - description: Task object that needs to be created
+        in: body
+        name: task
         required: true
-        type: string
+        schema:
+          $ref: '#/definitions/models.Task'
       produces:
       - application/json
       responses:
-        "200":
-          description: Task object
+        "201":
+          description: Task successfully created
           schema:
             $ref: '#/definitions/models.Task'
         "400":
-          description: Invalid task ID format
+          description: Bad Request
         "500":
-          description: Internal server error
-      summary: Get task by ID
+          description: Internal Server Error
+      summary: Create new task
       tags:
       - tasks
-  /api/task-service/task/filter:
+  /api/task-service/task/:
     get:
       consumes:
       - application/json
@@ -166,6 +208,67 @@ paths:
         "500":
           description: Internal Server Error
       summary: Get tasks by filters
+      tags:
+      - tasks
+  /api/task-service/task/{ID}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a specific task using its ID
+      parameters:
+      - description: Task ID
+        example: "1"
+        in: path
+        name: ID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Task object
+          schema:
+            $ref: '#/definitions/models.Task'
+        "400":
+          description: Invalid task ID format
+        "404":
+          description: Status Not Found
+        "500":
+          description: Internal server error
+      summary: Get task by ID
+      tags:
+      - tasks
+    patch:
+      consumes:
+      - application/json
+      description: Updates an existing task in the system
+      parameters:
+      - description: Task ID
+        example: "1"
+        in: path
+        name: ID
+        required: true
+        type: string
+      - description: Task object with fields to update
+        in: body
+        name: task
+        required: true
+        schema:
+          $ref: '#/definitions/models.Task'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Task successfully updated
+          schema:
+            $ref: '#/definitions/models.Task'
+        "400":
+          description: Bad Request
+        "404":
+          description: Task not found
+        "500":
+          description: Internal Server Error
+      summary: Update task by ID
       tags:
       - tasks
   /api/task-service/task/themes:

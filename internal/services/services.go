@@ -18,6 +18,7 @@ type Hint interface {
 	GetHintByID(hintID uint64) (*models.Hint, error)
 	GetAllHints(taskID uint64) (hints []*models.Hint, err error)
 	CreateNewHint(hint models.Hint) (newHint *models.Hint, err error)
+	UpdateHintByID(hintID uint64, newHint models.Hint) (patchedHint *models.Hint, err error)
 }
 
 type Services struct {

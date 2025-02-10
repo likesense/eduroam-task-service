@@ -27,6 +27,7 @@ func (hh *HintHandler) RegisterHintRoutes(grp *gin.RouterGroup) {
 	{
 		hint.GET("/byTask/:taskID", hh.handleGetAllHintsByTaskID)
 		hint.GET("/:ID", hh.handleGetHintByID)
+		hint.PATCH("/:ID", hh.handlePatchHintByID)
 		hint.POST("", hh.handleCreateNewHint)
 	}
 }
@@ -59,9 +60,47 @@ func (hh *HintHandler) handleGetAllHintsByTaskID(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "can not give a list of hints"})
 		return
 	}
-	
+
 	ctx.JSON(http.StatusOK, hint)
 
+}
+
+// handleUpdateHintByID updates an existing hint
+//
+// @Summary Update hint by ID
+// @Description Updates an existing hint in the system
+// @Tags hints
+// @Accept json
+// @Produce json
+// @Param ID path string true "Hint ID" example(1)
+// @Param hint body models.Hint true "Hint object with fields to update"
+// @Success 200 {object} models.Hint "Hint successfully updated"
+// @Failure 400 "Bad Request"
+// @Failure 404 "Hint not found"
+// @Failure 500 "Internal Server Error"
+// @Router /api/task-service/hint/{ID} [patch]
+func (hh *HintHandler) handlePatchHintByID(ctx *gin.Context) {
+	HintIDStr := ctx.Param("ID")
+	if len(strings.TrimSpace(HintIDStr)) == 0{
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "ID is required"})
+		return
+	}
+	HintID, err := strconv.ParseUint(HintIDStr, 10, 64)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid Hint ID format"})
+		return
+	}
+	var hint models.Hint
+	if err = ctx.ShouldBindJSON(&hint); err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "invalid input format"})
+		return
+	}
+	patchedHint, err := hh.service.UpdateHintByID(HintID, hint)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	ctx.JSON(http.StatusOK, patchedHint)
 }
 
 // handleCreateNewHint creates a new hint

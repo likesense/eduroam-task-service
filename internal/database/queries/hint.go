@@ -19,11 +19,10 @@ const (
 	`
 	UpdateHintByID = `
 	UPDATE eduroam.public.hint h
-	SET h.theme = COALESCE($1, h.theme)
-		h.task_id = COALESCE($1, h.theme)
-		h.is_used = COALESCE($1, h.theme)
-		h.hint_text = COALESCE($1, h.theme)
-	WHERE h.id = $5
-	RETURNING h.id, h.task_id, h.theme, h.hint_text, h.is_used
+	SET theme = COALESCE($1, theme),
+		is_used = COALESCE($2, is_used),
+		hint_text = COALESCE($3, hint_text)
+	WHERE h.id = $4
+	RETURNING id, task_id, theme, hint_text, is_used
 	`
 )

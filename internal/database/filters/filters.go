@@ -38,7 +38,7 @@ func ByTaskComplexity(min, max uint16) func(any) any {
 		}
 	}
 }
-//TODO: move to hint filters
+
 func ByUsedHint(is_used bool) func(any) any {
 	return func(a any) any {
 		switch v := a.(type) {
@@ -46,6 +46,28 @@ func ByUsedHint(is_used bool) func(any) any {
 			return v.Where(squirrel.Eq{"t.is_used": is_used})
 		default:
 			panic(fmt.Sprintf("Unexpected filter type: %T", a))
+		}
+	}
+}
+
+func ByCourseTitle(title string) func(any) any {
+	return func(a any) any {
+		switch v := a.(type) {
+		case squirrel.SelectBuilder:
+			return v.Where(squirrel.Eq{"c.title": title})
+		default:
+			panic(fmt.Sprintf("Unexpected filter type: %T", a))
+		}
+	}
+}
+
+func ByCourseDesription(description string) func(any) any {
+	return func(a any) any {
+		switch v := a.(type) {
+		case squirrel.SelectBuilder:
+			return v.Where(squirrel.Eq{"c.description": description})
+		default:
+			panic(fmt.Sprintf("Unexpected type of filter %T", a))
 		}
 	}
 }

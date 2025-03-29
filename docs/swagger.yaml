@@ -1,4 +1,34 @@
 definitions:
+  dto.CourseContentResponse:
+    properties:
+      content_type:
+        type: string
+      course_id:
+        type: integer
+      hints:
+        items:
+          $ref: '#/definitions/models.Hint'
+        type: array
+      id:
+        type: integer
+      order_number:
+        type: integer
+      task:
+        $ref: '#/definitions/models.Task'
+      theory:
+        $ref: '#/definitions/models.Theory'
+    type: object
+  models.Course:
+    properties:
+      description:
+        type: string
+      id:
+        type: integer
+      is_active:
+        type: boolean
+      title:
+        type: string
+    type: object
   models.Hint:
     properties:
       hint_text:
@@ -20,6 +50,8 @@ definitions:
       complexity:
         description: сложность
         type: integer
+      course_task_id:
+        type: integer
       id:
         type: integer
       is_finished:
@@ -30,9 +62,157 @@ definitions:
         description: тема задачи
         type: string
     type: object
+  models.Theory:
+    properties:
+      content:
+        type: string
+      course_id:
+        type: integer
+      id:
+        type: integer
+      title:
+        type: string
+    type: object
 info:
   contact: {}
 paths:
+  /api/task-service/course:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all available courses
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of all courses
+          schema:
+            items:
+              $ref: '#/definitions/models.Course'
+            type: array
+        "500":
+          description: Internal server error
+      summary: Get all courses
+      tags:
+      - courses
+    post:
+      consumes:
+      - application/json
+      description: Creates a new course
+      parameters:
+      - description: Course object that needs to be created
+        in: body
+        name: course
+        required: true
+        schema:
+          $ref: '#/definitions/models.Course'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Course successfully created
+          schema:
+            $ref: '#/definitions/models.Course'
+        "201":
+          description: Course successfully created
+          schema:
+            $ref: '#/definitions/models.Course'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal server error
+      summary: Create new course
+      tags:
+      - courses
+  /api/task-service/course/{ID}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a course by its ID
+      parameters:
+      - description: Course ID
+        example: "1"
+        in: path
+        name: ID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Course details
+          schema:
+            $ref: '#/definitions/models.Course'
+        "400":
+          description: Invalid course ID
+        "404":
+          description: Course not found
+        "500":
+          description: Internal server error
+      summary: Get course by ID
+      tags:
+      - courses
+    patch:
+      consumes:
+      - application/json
+      description: Updates an existing course by its ID
+      parameters:
+      - description: Course ID
+        example: "1"
+        in: path
+        name: ID
+        required: true
+        type: string
+      - description: Updated course data
+        in: body
+        name: course
+        required: true
+        schema:
+          $ref: '#/definitions/models.Course'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Course successfully updated
+          schema:
+            $ref: '#/definitions/models.Course'
+        "400":
+          description: Invalid course ID or request body
+        "404":
+          description: Course not found
+        "500":
+          description: Internal server error
+      summary: Update course by ID
+      tags:
+      - courses
+  /api/task-service/course/fill/{ID}:
+    post:
+      consumes:
+      - application/json
+      description: Retrieves content for a specified course
+      parameters:
+      - description: Course ID
+        example: "1"
+        in: path
+        name: ID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Course content retrieved successfully
+          schema:
+            items:
+              $ref: '#/definitions/dto.CourseContentResponse'
+            type: array
+        "400":
+          description: Invalid course ID
+        "500":
+          description: Internal server error
+      summary: Get course content
+      tags:
+      - courses
   /api/task-service/hint:
     post:
       consumes:
